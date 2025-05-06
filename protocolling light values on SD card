@@ -1,0 +1,75 @@
+#include"Adafruit_VEML7700.h"
+#include<SD.h>
+#include<SPI.h>
+
+File myFile; 
+
+Adafruit_VEML7700 veml = Adafruit_VEML7700();
+
+int screadpin =A5;
+int adcres=4096;
+float R = 40.1;
+
+void setup() {
+  if (!SD.begin(4)) {
+    Serial.println("initialization failed!");
+    while (1);
+  }
+  myFile=SD.open("test.txt", FILE_WRITE);
+
+  Serial.begin(9600);
+  while(!Serial)  { delay(10); }
+  Serial.println("Adafruit VEML7700 Test");
+  if (!veml.begin()) {
+    Serial.println("Sensor not found");
+    while (1);
+  }
+  Serial.println("Sensor found");
+}
+
+void loop() {
+  int raw = analogRead(screadpin); 
+  float voltage = (raw / float(adcres))*3.3*2;
+  float current= voltage/80.2; 
+  float watt = current*voltage;
+  float flaeche = 0.00728*0.0207*10;
+  float wattflaeche= watt/flaeche; 
+  Serial.print("ADC-Wert: "); 
+  Serial.println(raw);
+  Serial.print("Spannung: ");
+  Serial.println(voltage,6);
+  Serial.print("Strom: ");
+  Serial.println(current,6);
+  Serial.print("Leistung: ");
+  Serial.println(watt,6);
+  Serial.print("W/m^2: ");
+  Serial.println(wattflaeche, 10);
+  Serial.print("lux: "); 
+  Serial.println(veml.readLux());
+  if (myFile){
+    myFile.print("ADC-Wert: "); 
+    myFile.println(raw);
+    myFile.print("Spannung: ");
+    myFile.println(voltage,6);
+    myFile.print("Strom: ");
+    myFile.println(current,6);
+    myFile.print("Leistung: ");
+    myFile.println(watt,6);
+    myFile.print("W/m^2: ");
+    myFile.println(wattflaeche, 10);
+    myFile.print("lux: "); 
+    myFile.println(veml.readLux());
+  }
+  delay(1000);
+   if (Serial.read()=='c'){
+    while (true){
+      if (Serial.read() == 'g') {
+        Serial.println("Eingabe 'g' erkannt, Fortsetzung des Programms...");
+        break; 
+      }
+      
+    }
+  }
+
+
+}
